@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Navigate - Basic Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .controls {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .status.listening {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.stopped {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status.unsupported {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .demo-section {
+            background: #e9ecef;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .command-log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Audio Navigate - Basic Example</h1>
+    
+    <div class="controls">
+        <h2>Voice Control</h2>
+        <button id="startBtn">Start Listening</button>
+        <button id="stopBtn">Stop Listening</button>
+        
+        <div id="status" class="status">Status: Stopped</div>
+        <div id="transcript">Transcript: </div>
+        <div id="error"></div>
+    </div>
+
+    <div class="demo-section">
+        <h2>Try These Voice Commands:</h2>
+        <ul>
+            <li><strong>"go down"</strong> or <strong>"scroll down"</strong> - Scroll down the page</li>
+            <li><strong>"go up"</strong> or <strong>"scroll up"</strong> - Scroll up the page</li>
+            <li><strong>"click submit button"</strong> - Click the submit button below</li>
+            <li><strong>"fill John Doe in name field"</strong> - Fill the name field</li>
+            <li><strong>"select Option 2 from dropdown"</strong> - Select from dropdown</li>
+        </ul>
+    </div>
+
+    <div class="demo-section">
+        <h2>Interactive Elements</h2>
+        
+        <div class="form-group">
+            <label for="name">Name Field:</label>
+            <input type="text" id="name" placeholder="Say 'fill [name] in name field'">
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email Field:</label>
+            <input type="email" id="email" placeholder="Say 'fill [email] in email field'">
+        </div>
+
+        <div class="form-group">
+            <label for="dropdown">Dropdown:</label>
+            <select id="dropdown">
+                <option value="">Select an option</option>
+                <option value="option1">Option 1</option>
+                <option value="option2">Option 2</option>
+                <option value="option3">Option 3</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="message">Message:</label>
+            <textarea id="message" rows="4" placeholder="Say 'fill [message] in message field'"></textarea>
+        </div>
+
+        <button id="submitBtn">Submit Button</button>
+        <button id="cancelBtn">Cancel Button</button>
+        <button id="resetBtn">Reset Button</button>
+    </div>
+
+    <div class="command-log">
+        <h3>Command Log:</h3>
+        <div id="log"></div>
+    </div>
+
+    <!-- Generate lots of content for scrolling demo -->
+    <div style="height: 200vh; background: linear-gradient(to bottom, #f8f9fa, #e9ecef); padding: 40px; margin: 20px 0;">
+        <h2>Scrolling Demo Area</h2>
+        <p>Try saying "go down" or "scroll down" to navigate through this content.</p>
+        <div style="margin: 50px 0;">
+            <h3>Section 1</h3>
+            <p>This is a long section to demonstrate scrolling functionality. Keep scrolling to see more content.</p>
+        </div>
+        <div style="margin: 50px 0;">
+            <h3>Section 2</h3>
+            <p>You can use voice commands to navigate up and down the page smoothly.</p>
+        </div>
+        <div style="margin: 50px 0;">
+            <h3>Section 3</h3>
+            <p>The scroll commands use smooth scrolling for better user experience.</p>
+        </div>
+        <div style="margin: 50px 0;">
+            <h3>Section 4</h3>
+            <p>Try saying "go up" to scroll back to the top of the page.</p>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import the AudioNavigate library
+        import { AudioNavigate } from '../src/index.js';
+
+        // Initialize AudioNavigate
+        const audioNavigate = new AudioNavigate({
+            onCommand: (command) => {
+                logCommand(`Command executed: ${command.type} - ${command.action}`, 'success');
+                console.log('Voice command:', command);
+            },
+            onResult: (transcript) => {
+                document.getElementById('transcript').textContent = `Transcript: "${transcript}"`;
+            },
+            onError: (error) => {
+                document.getElementById('error').textContent = `Error: ${error.message}`;
+                logCommand(`Error: ${error.message}`, 'error');
+            }
+        });
+
+        // DOM elements
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const statusDiv = document.getElementById('status');
+        const logDiv = document.getElementById('log');
+
+        // Event listeners
+        startBtn.addEventListener('click', () => {
+            audioNavigate.startListening();
+            updateStatus();
+        });
+
+        stopBtn.addEventListener('click', () => {
+            audioNavigate.stopListening();
+            updateStatus();
+        });
+
+        // Update status display
+        function updateStatus() {
+            const status = audioNavigate.getStatus();
+            statusDiv.textContent = `Status: ${status.charAt(0).toUpperCase() + status.slice(1)}`;
+            statusDiv.className = `status ${status}`;
+            
+            startBtn.disabled = status === 'listening';
+            stopBtn.disabled = status === 'stopped';
+        }
+
+        // Log commands
+        function logCommand(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `<span style="color: #666;">[${timestamp}]</span> ${message}`;
+            
+            if (type === 'error') {
+                logEntry.style.color = '#dc3545';
+            } else if (type === 'success') {
+                logEntry.style.color = '#28a745';
+            }
+            
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // Form interactions
+        document.getElementById('submitBtn').addEventListener('click', () => {
+            logCommand('Submit button clicked!', 'success');
+        });
+
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            logCommand('Cancel button clicked!', 'info');
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            document.getElementById('name').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('dropdown').value = '';
+            document.getElementById('message').value = '';
+            logCommand('Form reset!', 'info');
+        });
+
+        // Initial status update
+        updateStatus();
+        
+        // Check if speech recognition is supported
+        if (!audioNavigate.isSupported()) {
+            logCommand('Speech recognition is not supported in this browser. Please use Chrome or Edge.', 'error');
+            startBtn.disabled = true;
+        } else {
+            logCommand('Speech recognition is ready! Click "Start Listening" to begin.', 'success');
+        }
+    </script>
+</body>
+</html>

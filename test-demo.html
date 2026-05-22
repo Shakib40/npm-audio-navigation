@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Navigate - Test Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .controls {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.listening {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.stopped {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.unsupported {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .test-form {
+            background: white;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .log-entry.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .log-entry.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .log-entry.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .command-list {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .command-list h3 {
+            margin-top: 0;
+        }
+        .command-list ul {
+            margin: 10px 0;
+        }
+        .command-list li {
+            margin: 5px 0;
+        }
+        .test-result {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .test-result.pass {
+            background: #d4edda;
+            color: #155724;
+        }
+        .test-result.fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎤 Audio Navigate - Test Demo</h1>
+    
+    <div class="test-section">
+        <h2>🧪 Testing Guide</h2>
+        <p>This page helps you test the Audio Navigate library functionality. Follow these steps:</p>
+        
+        <ol>
+            <li><strong>Browser Check:</strong> Make sure you're using Chrome or Edge (best support)</li>
+            <li><strong>Microphone Permission:</strong> Allow microphone access when prompted</li>
+            <li><strong>Start Listening:</strong> Click the "Start Voice Control" button</li>
+            <li><strong>Test Commands:</strong> Try the voice commands listed below</li>
+            <li><strong>Check Results:</strong> Watch the log and test results</li>
+        </ol>
+    </div>
+
+    <div class="controls">
+        <h2>🎛️ Voice Controls</h2>
+        <button id="startBtn">🎤 Start Voice Control</button>
+        <button id="stopBtn">⏹️ Stop Voice Control</button>
+        <button id="testBtn">🧪 Run Auto Tests</button>
+        <button id="clearBtn">🗑️ Clear Log</button>
+        
+        <div id="status" class="status">Status: Stopped</div>
+        <div id="transcript">Transcript: </div>
+        <div id="error"></div>
+    </div>
+
+    <div class="command-list">
+        <h3>📝 Test Voice Commands:</h3>
+        <ul>
+            <li><strong>Navigation:</strong> "go down", "scroll up", "move down", "up"</li>
+            <li><strong>Click:</strong> "click submit button", "press login", "select cancel"</li>
+            <li><strong>Fill Input:</strong> "fill John Doe in name field", "type test@example.com in email field"</li>
+            <li><strong>Dropdown:</strong> "select Option 2 from dropdown", "choose Admin from role"</li>
+        </ul>
+    </div>
+
+    <div class="test-form">
+        <h2>📋 Test Form</h2>
+        
+        <div class="form-group">
+            <label for="name">Name Field:</label>
+            <input type="text" id="name" placeholder="Say 'fill John in name field'">
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email Field:</label>
+            <input type="email" id="email" placeholder="Say 'fill test@example.com in email field'">
+        </div>
+
+        <div class="form-group">
+            <label for="role">Role Dropdown:</label>
+            <select id="role">
+                <option value="">Select a role</option>
+                <option value="admin">Admin</option>
+                <option value="user">User</option>
+                <option value="guest">Guest</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="message">Message:</label>
+            <textarea id="message" rows="3" placeholder="Say 'fill Hello World in message field'"></textarea>
+        </div>
+
+        <button id="submitBtn">Submit Button</button>
+        <button id="loginBtn">Login Button</button>
+        <button id="cancelBtn">Cancel Button</button>
+        <button id="resetBtn">Reset Form</button>
+    </div>
+
+    <div id="testResults"></div>
+
+    <div class="log">
+        <h3>📊 Test Log:</h3>
+        <div id="log"></div>
+    </div>
+
+    <!-- Extra content for scrolling tests -->
+    <div style="height: 150vh; background: linear-gradient(to bottom, #f8f9fa, #e9ecef); padding: 40px; margin: 20px 0; border-radius: 8px;">
+        <h2>📜 Scroll Test Area</h2>
+        <p>Use "go down" or "scroll up" commands to test navigation.</p>
+        <div style="margin: 30px 0;">
+            <h3>Section 1</h3>
+            <p>This is section 1 for testing scroll functionality.</p>
+        </div>
+        <div style="margin: 30px 0;">
+            <h3>Section 2</h3>
+            <p>This is section 2 for testing scroll functionality.</p>
+        </div>
+        <div style="margin: 30px 0;">
+            <h3>Section 3</h3>
+            <p>This is section 3 for testing scroll functionality.</p>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import the AudioNavigate library
+        import { AudioNavigate } from './src/index.js';
+
+        // Test configuration
+        const testConfig = {
+            tests: [
+                {
+                    name: 'Browser Support',
+                    test: () => audioNavigate.isSupported(),
+                    expected: true
+                },
+                {
+                    name: 'Initial Status',
+                    test: () => audioNavigate.getStatus() === 'stopped',
+                    expected: true
+                },
+                {
+                    name: 'Command Parser - Scroll Down',
+                    test: () => {
+                        const command = audioNavigate.parseCommand('go down');
+                        return command && command.type === 'scroll' && command.action === 'down';
+                    },
+                    expected: true
+                },
+                {
+                    name: 'Command Parser - Click',
+                    test: () => {
+                        const command = audioNavigate.parseCommand('click submit button');
+                        return command && command.type === 'click' && command.target === 'submit button';
+                    },
+                    expected: true
+                },
+                {
+                    name: 'Command Parser - Fill',
+                    test: () => {
+                        const command = audioNavigate.parseCommand('fill John in name field');
+                        return command && command.type === 'fill' && command.value === 'John' && command.target === 'name field';
+                    },
+                    expected: true
+                },
+                {
+                    name: 'Command Parser - Select',
+                    test: () => {
+                        const command = audioNavigate.parseCommand('select Admin from role');
+                        return command && command.type === 'select' && command.value === 'Admin' && command.target === 'role';
+                    },
+                    expected: true
+                }
+            ]
+        };
+
+        // Initialize AudioNavigate
+        const audioNavigate = new AudioNavigate({
+            onCommand: (command) => {
+                logCommand(`✅ Command executed: ${command.type} - ${command.action}`, 'success');
+                if (command.target) logCommand(`   Target: ${command.target}`, 'info');
+                if (command.value) logCommand(`   Value: ${command.value}`, 'info');
+                console.log('Voice command:', command);
+            },
+            onResult: (transcript) => {
+                document.getElementById('transcript').textContent = `Transcript: "${transcript}"`;
+                logCommand(`🎤 Transcript: "${transcript}"`, 'info');
+            },
+            onError: (error) => {
+                document.getElementById('error').textContent = `Error: ${error.message}`;
+                logCommand(`❌ Error: ${error.message}`, 'error');
+            }
+        });
+
+        // DOM elements
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const testBtn = document.getElementById('testBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const statusDiv = document.getElementById('status');
+        const logDiv = document.getElementById('log');
+        const testResultsDiv = document.getElementById('testResults');
+
+        // Event listeners
+        startBtn.addEventListener('click', () => {
+            audioNavigate.startListening();
+            updateStatus();
+            logCommand('🎤 Started listening for voice commands...', 'info');
+        });
+
+        stopBtn.addEventListener('click', () => {
+            audioNavigate.stopListening();
+            updateStatus();
+            logCommand('⏹️ Stopped listening', 'info');
+        });
+
+        testBtn.addEventListener('click', runAutomatedTests);
+        clearBtn.addEventListener('click', clearLog);
+
+        // Form interactions
+        document.getElementById('submitBtn').addEventListener('click', () => {
+            logCommand('🔘 Submit button clicked!', 'success');
+        });
+
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            logCommand('🔘 Login button clicked!', 'success');
+        });
+
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            logCommand('🔘 Cancel button clicked!', 'info');
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            document.getElementById('name').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('role').value = '';
+            document.getElementById('message').value = '';
+            logCommand('🔄 Form reset!', 'info');
+        });
+
+        // Update status display
+        function updateStatus() {
+            const status = audioNavigate.getStatus();
+            statusDiv.textContent = `Status: ${status.charAt(0).toUpperCase() + status.slice(1)}`;
+            statusDiv.className = `status ${status}`;
+            
+            startBtn.disabled = status === 'listening';
+            stopBtn.disabled = status === 'stopped';
+        }
+
+        // Log functions
+        function logCommand(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.innerHTML = `<span style="color: #666;">[${timestamp}]</span> ${message}`;
+            
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            logDiv.innerHTML = '';
+            logCommand('🗑️ Log cleared', 'info');
+        }
+
+        // Automated testing
+        function runAutomatedTests() {
+            logCommand('🧪 Running automated tests...', 'info');
+            testResultsDiv.innerHTML = '<h3>🧪 Test Results:</h3>';
+            
+            let passed = 0;
+            let failed = 0;
+
+            testConfig.tests.forEach((test, index) => {
+                try {
+                    const result = test.test();
+                    const passedTest = result === test.expected;
+                    
+                    if (passedTest) {
+                        passed++;
+                        logCommand(`✅ Test ${index + 1}: ${test.name} - PASSED`, 'success');
+                    } else {
+                        failed++;
+                        logCommand(`❌ Test ${index + 1}: ${test.name} - FAILED (expected: ${test.expected}, got: ${result})`, 'error');
+                    }
+
+                    // Add result to test results section
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = `test-result ${passedTest ? 'pass' : 'fail'}`;
+                    resultDiv.textContent = `${test.name}: ${passedTest ? 'PASSED' : 'FAILED'}`;
+                    testResultsDiv.appendChild(resultDiv);
+
+                } catch (error) {
+                    failed++;
+                    logCommand(`❌ Test ${index + 1}: ${test.name} - ERROR: ${error.message}`, 'error');
+                    
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'test-result fail';
+                    resultDiv.textContent = `${test.name}: ERROR - ${error.message}`;
+                    testResultsDiv.appendChild(resultDiv);
+                }
+            });
+
+            // Summary
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = 'test-result';
+            summaryDiv.style.background = failed === 0 ? '#d4edda' : '#f8d7da';
+            summaryDiv.style.color = failed === 0 ? '#155724' : '#721c24';
+            summaryDiv.innerHTML = `<strong>Test Summary: ${passed} passed, ${failed} failed</strong>`;
+            testResultsDiv.appendChild(summaryDiv);
+
+            logCommand(`📊 Test Summary: ${passed} passed, ${failed} failed`, failed === 0 ? 'success' : 'error');
+        }
+
+        // Initialize
+        updateStatus();
+        logCommand('🚀 Audio Navigate Test Demo loaded!', 'success');
+        
+        // Check browser support
+        if (!audioNavigate.isSupported()) {
+            logCommand('⚠️ Speech recognition not supported in this browser. Please use Chrome or Edge.', 'error');
+            startBtn.disabled = true;
+        } else {
+            logCommand('✅ Speech recognition is supported! Ready to test.', 'success');
+        }
+
+        // Run initial tests
+        setTimeout(() => {
+            logCommand('🧪 Running initial functionality tests...', 'info');
+            runAutomatedTests();
+        }, 1000);
+    </script>
+</body>
+</html>

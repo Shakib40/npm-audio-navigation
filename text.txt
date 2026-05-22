@@ -1,0 +1,8 @@
+ create node_module library, for react.js or angular.js
+ 
+ audio based command
+ 1. when we say anything it will do
+ like if we say go down automatically it wil go down
+ if we say click on button then click on that button
+ if we say fill input then fill input
+ if we say select dropdown then select down
